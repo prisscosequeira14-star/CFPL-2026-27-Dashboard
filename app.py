@@ -219,6 +219,8 @@ except Exception as error:
 
 
 latest_gw = latest_finished_gameweek(events)
+current_gw = max([e["id"] for e in events if e.get("is_current")], default=latest_gw)
+display_gw = max(latest_gw, current_gw)
 
 if latest_gw == 0:
     st.warning("No completed FPL gameweek has been detected yet.")
@@ -293,8 +295,8 @@ if not standings_df.empty:
 
     c1.metric("Managers", len(standings_df))
     c2.metric(
-        "Latest finished GW",
-        gameweek_name(latest_gw) if latest_gw else "-",
+        "Latest Gameweek",
+       gameweek_name(display_gw) if display_gw else "-",
     )
     c3.metric("League leader", leader["Team"])
     c4.metric("Leader points", int(leader["Points"]))
