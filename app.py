@@ -179,6 +179,7 @@ def latest_finished_gameweek(events):
         event["id"]
         for event in events
         if event.get("finished") is True
+        or event.get("data_checked") is True
     ]
 
     return max(finished) if finished else 0
