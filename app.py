@@ -523,6 +523,28 @@ with tab1:
 with tab2:
     st.subheader("Gameweek Results")
 
+        # LIVE CURRENT GAMEWEEK
+    if current_gw > latest_gw:
+        st.markdown(f"### 🔴 LIVE {gameweek_name(current_gw)} Standings")
+        st.caption(
+            "Live scores are provisional and may change until the gameweek is completed."
+        )
+
+        live_gw_df = gameweek_table(current_gw)
+
+        if not live_gw_df.empty:
+            st.dataframe(
+                live_gw_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+        else:
+            st.info(
+                f"{gameweek_name(current_gw)} scores are not available yet."
+            )
+
+        st.divider()
+
     completed_gws = sorted(
         [event["id"] for event in finished_events],
         reverse=True,
