@@ -412,7 +412,14 @@ finished_events = [
 def available_months():
     months = {}
 
-    for event in finished_events:
+    # Build month groups from all gameweeks that have started,
+    # including the current/latest gameweek.
+    for event in events:
+        gw = int(event.get("id", 0))
+
+        if gw > latest_gw:
+            continue
+
         year, month = event_month(event)
 
         if year and month:
@@ -421,10 +428,9 @@ def available_months():
             if key not in months:
                 months[key] = []
 
-            months[key].append(event["id"])
+            months[key].append(gw)
 
     return months
-
 
 month_map = available_months()
 
@@ -462,7 +468,7 @@ def monthly_table(month_key):
             info = manager_lookup.get(entry_id, {})
 
             rows.append(
-                {
+                {"Entry": entry_id,
                     "Team": info.get("Team", ""),
                     "Manager": info.get("Manager", ""),
                     "Month Points": total,
@@ -736,21 +742,72 @@ with tab4:
         current_df = monthly_table(current_month_key)
 
         if not current_df.empty:
-            live_top3 = current_df.head(3).copy()
 
+            # Get all Gameweeks belonging to the current month
+            current_gws = month_map.get(current_month_key, [])
+
+            # Build GW-by-GW columns for every manager
+            live_rows = []
+
+            for _, manager_row in current_df.iterrows():
+
+                entry_id = manager_row["Entry"]
+                history = histories.get(entry_id, [])
+
+                row = {
+                    "Manager": manager_row["Manager"],
+                    "Team": manager_row["Team"],
+                }
+
+                total_points = 0
+
+                for gw in current_gws:
+                    gw_row = next(
+                        (
+                            h for h in history
+                            if int(h.get("event", 0)) == int(gw)
+                        ),
+                        None,
+                    )
+
+                    gw_points = (
+                        int(gw_row.get("points", 0))
+                        if gw_row
+                        else 0
+                    )
+
+                    row[f"GW{gw}"] = gw_points
+                    total_points += gw_points
+
+                row["Total Points"] = total_points
+                live_rows.append(row)
+
+            live_df = pd.DataFrame(live_rows)
+
+            # Rank managers by total September points
+            live_df = live_df.sort_values(
+                "Total Points",
+                ascending=False
+            ).reset_index(drop=True)
+
+            # Keep Top 3
+            live_top3 = live_df.head(3).copy()
+
+            positions = ["🥇 1st", "🥈 2nd", "🥉 3rd"]
             live_top3.insert(
                 0,
                 "Position",
-                ["🥇 1st", "🥈 2nd", "🥉 3rd"][:len(live_top3)]
+                positions[:len(live_top3)]
             )
+
+            # Arrange columns
+            gw_columns = [f"GW{gw}" for gw in current_gws]
 
             live_top3 = live_top3[
-                ["Position", "Manager", "Team", "Month Points"]
+                ["Position", "Manager", "Team"]
+                + gw_columns
+                + ["Total Points"]
             ]
-
-            live_top3 = live_top3.rename(
-                columns={"Month Points": "Points"}
-            )
 
             st.dataframe(
                 live_top3,
@@ -759,10 +816,12 @@ with tab4:
             )
 
             st.caption(
-                "Live standings — automatically updates as Gameweek scores are completed."
+                "Live standings — Gameweek scores are added automatically "
+                "and Total Points determines the Manager of the Month ranking."
             )
+
         else:
-            st.info("Current month standings are not available yet.")
+            st.info("Current month standings are not available yet.")        
          
 
 
