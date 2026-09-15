@@ -672,17 +672,28 @@ with tab3:
 # ============================================================
 
 with tab4:
-    st.subheader("Manager of the Month Hall of Fame")
+    st.subheader("🏆 Manager of the Month Hall of Fame")
 
     hall_rows = []
 
+    # Find the month containing the latest/current gameweek
+    current_month_key = None
+
+    for month_key, month_gws in month_map.items():
+        if latest_gw in month_gws:
+            current_month_key = month_key
+            break
+
+    # -----------------------------
+    # COMPLETED MONTHS - HALL OF FAME
+    # -----------------------------
     for month_key in sorted(month_map.keys()):
-        month_gws = month_map[month_key]
 
-            # Only process months where ALL gameweeks have finished.
-    if all(gw <= latest_gw for gw in month_gws):
+        # Do not put the current month into Hall of Fame yet
+        if month_key == current_month_key:
+            continue
+
         df = monthly_table(month_key)
-
 
         if not df.empty:
             winner = df.iloc[0]
@@ -708,9 +719,50 @@ with tab4:
             hide_index=True,
             use_container_width=True,
         )
-
     else:
-        st.info("The Hall of Fame will appear after completed Gameweeks.")
+        st.info("No completed monthly winners yet.")
+
+    # -----------------------------
+    # CURRENT MONTH - LIVE TOP 3
+    # -----------------------------
+    if current_month_key is not None:
+
+        st.divider()
+
+        st.subheader(
+            f"🔥 {month_label(current_month_key)} — LIVE Manager of the Month Race"
+        )
+
+        current_df = monthly_table(current_month_key)
+
+        if not current_df.empty:
+            live_top3 = current_df.head(3).copy()
+
+            live_top3.insert(
+                0,
+                "Position",
+                ["🥇 1st", "🥈 2nd", "🥉 3rd"][:len(live_top3)]
+            )
+
+            live_top3 = live_top3[
+                ["Position", "Manager", "Team", "Month Points"]
+            ]
+
+            live_top3 = live_top3.rename(
+                columns={"Month Points": "Points"}
+            )
+
+            st.dataframe(
+                live_top3,
+                hide_index=True,
+                use_container_width=True,
+            )
+
+            st.caption(
+                "Live standings — automatically updates as Gameweek scores are completed."
+            )
+        else:
+            st.info("Current month standings are not available yet.")
          
 
 
