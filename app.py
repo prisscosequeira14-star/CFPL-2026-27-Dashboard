@@ -679,12 +679,10 @@ with tab4:
     for month_key in sorted(month_map.keys()):
         month_gws = month_map[month_key]
 
-        # Hall of Fame only shows months that are fully completed.
-        # If this month contains the current/live gameweek, it is still in progress.
-        if current_gw in month_gws and current_gw > latest_gw:
-            continue
-
+            # Only process months where ALL gameweeks have finished.
+    if all(gw <= latest_gw for gw in month_gws):
         df = monthly_table(month_key)
+
 
         if not df.empty:
             winner = df.iloc[0]
