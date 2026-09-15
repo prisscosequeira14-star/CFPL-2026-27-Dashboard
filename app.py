@@ -678,7 +678,7 @@ with tab3:
 # ============================================================
 
 with tab4:
-    st.subheader("🏆 Manager of the Month Hall of Fame")
+    st.subheader("Manager of the Month Hall of Fame")
 
     hall_rows = []
 
@@ -736,7 +736,7 @@ with tab4:
         st.divider()
 
         st.subheader(
-            f"🔥 {month_label(current_month_key)} — LIVE Manager of the Month Race"
+            f"{month_label(current_month_key)} — LIVE Manager of the Month Race"
         )
 
         current_df = monthly_table(current_month_key)
@@ -793,7 +793,7 @@ with tab4:
             # Keep Top 3
             live_top3 = live_df.head(3).copy()
 
-            positions = ["🥇 1st", "🥈 2nd", "🥉 3rd"]
+            positions = ["1st", "2nd", "3rd"]
             live_top3.insert(
                 0,
                 "Position",
