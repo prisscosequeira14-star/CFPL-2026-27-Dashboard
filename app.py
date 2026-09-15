@@ -677,6 +677,13 @@ with tab4:
     hall_rows = []
 
     for month_key in sorted(month_map.keys()):
+        month_gws = month_map[month_key]
+
+        # Hall of Fame only shows months that are fully completed.
+        # If this month contains the current/live gameweek, it is still in progress.
+        if current_gw in month_gws and current_gw > latest_gw:
+            continue
+
         df = monthly_table(month_key)
 
         if not df.empty:
@@ -706,6 +713,7 @@ with tab4:
 
     else:
         st.info("The Hall of Fame will appear after completed Gameweeks.")
+         
 
 
 # ============================================================
